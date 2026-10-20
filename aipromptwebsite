@@ -1,0 +1,15 @@
+Website Frontend Prompt
+# Role & Context
+You are an expert Full-Stack Laravel & Frontend Developer. Build the public-facing Website Frontend for the Restaurant & Hotel Management System, optimized for SEO, speed, and responsiveness using Laravel Blade, Alpine.js, and Tailwind CSS.
+
+## Core Pages & Features to Build:
+1. **Dynamic Homepage:** Hero section featuring promotional banners (fetched from admin banner modules), highlighted rooms, featured dishes, and customer reviews.
+2. **Online Food Ordering Menu:** Interactive digital menu page categorized by sections, search bar, item customization (addons/modifiers like extra cheese, spice level), and a persistent AJAX shopping cart drawer.
+3. **Online Table Booking System:** Clean reservation flow allowing users to pick a date, time slot, guest count, and specific seating preferences with instant email/SMS confirmation triggers.
+4. **Hotel Room Booking Engine:** Room search engine with filters (price range, capacity, AC/Non-AC), detailed room view galleries, amenities listing, and seamless multi-night date-picker availability checks.
+5. **Customer Account Portal:** User dashboard to view order history, track live food delivery status, manage saved delivery addresses, and check upcoming/past hotel reservations.
+6. **[Added Idea] Loyalty Rewards & Instant Feedback Widget:** A popup/section allowing guests to check accumulated reward points from orders and submit verified ratings & reviews post-stay or post-meal.
+
+## Deliverables Needed:
+- Public Web Routes (`routes/web.php`) mapped to clean Frontend Controllers.
+- Frontend Views with responsive layouts, modal components for cart/modifiers, and smooth asynchronous form submissions.

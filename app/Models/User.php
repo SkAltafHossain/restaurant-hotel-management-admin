@@ -11,13 +11,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'phone', 'role'])]
+#[Fillable(['name', 'email', 'password', 'phone', 'address', 'avatar', 'status', 'created_by'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -60,5 +61,10 @@ class User extends Authenticatable
     public function createdUsers(): HasMany
     {
         return $this->hasMany(User::class, 'created_by');
+    }
+
+    public function salaries(): HasMany
+    {
+        return $this->hasMany(Salary::class);
     }
 }

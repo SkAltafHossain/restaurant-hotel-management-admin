@@ -24,11 +24,12 @@ class UserRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $this->user,
+            'email' => 'required|email|max:255|unique:users,email,'.$this->user,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|max:2048',
             'status' => 'required|in:active,inactive',
+            'role' => 'nullable|exists:roles,name',
         ];
 
         if ($this->isMethod('post')) {

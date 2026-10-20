@@ -16,6 +16,7 @@ class POSController extends Controller
     {
         $items = Item::where('is_available', true)->where('type', 'food')->get();
         $tables = Table::where('status', 'available')->get();
+
         return view('admin.pos.index', compact('items', 'tables'));
     }
 
@@ -24,11 +25,11 @@ class POSController extends Controller
         $request->validate([
             'table_id' => 'nullable|exists:tables,id',
             'order_type' => 'required|in:dine_in,takeaway,delivery',
-            'items' => 'required|array',
+            'items' => 'required|array|min:1',
             'items.*.item_id' => 'required|exists:items,id',
             'items.*.quantity' => 'required|integer|min:1',
             'discount' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|in:cash,upi,card',
+            'payment_method' => 'nullable|required_if:order_type,takeaway,delivery|in:cod,online,cash,upi,card',
         ]);
 
         $totalAmount = 0;
@@ -50,6 +51,17 @@ class POSController extends Controller
         $discount = $request->discount ?? 0;
         $finalAmount = $totalAmount - $discount;
 
+        $paymentStatus = 'unpaid';
+        $orderStatus = 'pending';
+
+        if ($request->order_type === 'takeaway') {
+            $paymentStatus = 'paid';
+            $orderStatus = 'completed';
+        } elseif ($request->order_type === 'delivery' && $request->payment_method === 'online') {
+            $paymentStatus = 'paid';
+            $orderStatus = 'completed';
+        }
+
         $order = Order::create([
             'user_id' => auth()->id(),
             'order_type' => $request->order_type,
@@ -57,8 +69,8 @@ class POSController extends Controller
             'total_amount' => $totalAmount,
             'discount' => $discount,
             'final_amount' => $finalAmount,
-            'payment_status' => 'paid',
-            'order_status' => 'completed',
+            'payment_status' => $paymentStatus,
+            'order_status' => $orderStatus,
         ]);
 
         foreach ($orderItems as $orderItem) {
@@ -71,14 +83,16 @@ class POSController extends Controller
             ]);
         }
 
-        Transaction::create([
-            'order_id' => $order->id,
-            'payment_method' => $request->payment_method,
-            'transaction_id' => 'POS-' . time() . '-' . $order->id,
-            'amount' => $finalAmount,
-            'status' => 'completed',
-        ]);
+        if (($request->order_type === 'takeaway' || $request->order_type === 'delivery') && $request->payment_method) {
+            Transaction::create([
+                'order_id' => $order->id,
+                'payment_method' => $request->payment_method,
+                'transaction_id' => 'POS-'.time().'-'.$order->id,
+                'amount' => $finalAmount,
+                'status' => 'completed',
+            ]);
+        }
 
-        return redirect()->route('admin.pos.index')->with('success', 'Order completed successfully.');
+        return redirect()->route('admin.pos.index')->with('success', 'Order created successfully.');
     }
 }

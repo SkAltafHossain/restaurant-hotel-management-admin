@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
+use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\InventoryTransactionController;
 use App\Http\Controllers\Admin\ItemController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Admin\POSController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoomBookingController;
 use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\SalaryController;
 use App\Http\Controllers\Admin\TableBookingController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\UserController;
@@ -33,25 +35,30 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/items', [ItemController::class, 'apiIndex'])->name('api.items');
+    Route::get('/', [DashboardController::class, 'index'])->middleware('can:view dashboard')->name('dashboard');
 
-    Route::resource('categories', CategoryController::class);
-    Route::resource('items', ItemController::class);
-    Route::resource('rooms', RoomController::class);
-    Route::resource('inventories', InventoryController::class);
-    Route::resource('banners', BannerController::class);
-    Route::resource('orders', OrderController::class);
-    Route::resource('tables', TableController::class);
-    Route::resource('table-bookings', TableBookingController::class);
-    Route::resource('room-bookings', RoomBookingController::class);
-    Route::resource('users', UserController::class);
-    Route::resource('expenses', ExpenseController::class);
-    Route::resource('inventory-transactions', InventoryTransactionController::class);
+    Route::resource('categories', CategoryController::class)->middleware('can:manage categories');
+    Route::resource('items', ItemController::class)->middleware('can:manage items');
+    Route::resource('rooms', RoomController::class)->middleware('can:manage rooms');
+    Route::resource('inventories', InventoryController::class)->middleware('can:manage inventory');
+    Route::resource('banners', BannerController::class)->middleware('can:manage banners');
+    Route::resource('orders', OrderController::class)->middleware('can:manage orders');
+    Route::post('/orders/payment', [OrderController::class, 'payment'])->name('orders.payment')->middleware('can:manage orders');
+    Route::post('/orders/add-item', [OrderController::class, 'addItem'])->name('orders.add-item')->middleware('can:manage orders');
+    Route::resource('tables', TableController::class)->middleware('can:manage categories');
+    Route::resource('table-bookings', TableBookingController::class)->middleware('can:manage table bookings');
+    Route::resource('room-bookings', RoomBookingController::class)->middleware('can:manage room bookings');
+    Route::resource('users', UserController::class)->middleware('can:manage users');
+    Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('can:manage expenses');
+    Route::resource('salaries', SalaryController::class)->only(['index', 'store', 'update', 'destroy', 'show'])->middleware('can:manage salaries');
+    Route::resource('holidays', HolidayController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('can:manage holidays');
+    Route::resource('inventory-transactions', InventoryTransactionController::class)->middleware('can:manage inventory');
 
-    Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
-    Route::post('/pos', [POSController::class, 'store'])->name('pos.store');
+    Route::get('/pos', [POSController::class, 'index'])->middleware('can:use pos')->name('pos.index');
+    Route::post('/pos', [POSController::class, 'store'])->middleware('can:use pos')->name('pos.store');
 
-    Route::prefix('reports')->name('reports.')->group(function () {
+    Route::prefix('reports')->name('reports.')->middleware('can:generate reports')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/daily', [ReportController::class, 'dailyReport'])->name('daily');
         Route::get('/daily/export', [ReportController::class, 'exportDailyReport'])->name('daily.export');

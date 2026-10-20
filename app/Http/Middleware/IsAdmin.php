@@ -19,8 +19,10 @@ class IsAdmin
             return redirect()->route('login');
         }
 
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized action. You must be an admin to access this page.');
+        $allowedRoles = ['admin', 'manager', 'receptionist', 'waiter', 'kitchen_chef', 'delivery_boy'];
+
+        if (! auth()->user()->hasAnyRole($allowedRoles)) {
+            abort(403, 'Unauthorized action. You must be a staff member to access this page.');
         }
 
         return $next($request);

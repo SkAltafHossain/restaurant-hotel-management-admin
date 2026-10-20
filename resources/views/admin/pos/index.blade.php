@@ -118,14 +118,14 @@
                             <input type="number" name="discount" value="0" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition shadow-sm" placeholder="0.00">
                         </div>
                     </div>
-                    <div class="mb-4">
+                    <div class="mb-4" id="payment-method-section" style="display: none;">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method *</label>
-                        <select name="payment_method" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition shadow-sm">
-                            <option value="cash">💵 Cash</option>
-                            <option value="upi">📱 UPI</option>
-                            <option value="card">💳 Card</option>
+                        <select name="payment_method" id="payment_method" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition shadow-sm">
+                            <option value="cod">💵 Cash on Delivery</option>
+                            <option value="online">📱 Online Payment</option>
                         </select>
                     </div>
+
                     <div class="border-t-2 border-gray-200 pt-4">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-gray-600">Subtotal</span>
@@ -139,11 +139,11 @@
                             <span class="text-green-700">Total</span>
                             <span id="total-amount" class="text-green-700">₹0.00</span>
                         </div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center font-semibold">
+                        <button type="submit" id="create-order-btn" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Complete Order
+                            Create Order
                         </button>
                     </div>
                 </form>
@@ -155,18 +155,30 @@
 <script>
 let cart = [];
 
-// Handle order type change to show/hide table selection
+// Handle order type change to show/hide table selection and payment method
 document.getElementById('order_type').addEventListener('change', function() {
     const tableSection = document.getElementById('table-section');
     const tableSelect = tableSection.querySelector('select');
+    const paymentSection = document.getElementById('payment-method-section');
+    const paymentSelect = document.getElementById('payment_method');
 
     if (this.value === 'dine_in') {
         tableSection.style.display = 'block';
         tableSelect.required = true;
-    } else {
+        paymentSection.style.display = 'none';
+        paymentSelect.required = false;
+    } else if (this.value === 'takeaway') {
         tableSection.style.display = 'none';
         tableSelect.required = false;
         tableSelect.value = '';
+        paymentSection.style.display = 'block';
+        paymentSelect.required = true;
+    } else if (this.value === 'delivery') {
+        tableSection.style.display = 'none';
+        tableSelect.required = false;
+        tableSelect.value = '';
+        paymentSection.style.display = 'block';
+        paymentSelect.required = true;
     }
 });
 
@@ -175,13 +187,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const orderType = document.getElementById('order_type');
     const tableSection = document.getElementById('table-section');
     const tableSelect = tableSection.querySelector('select');
+    const paymentSection = document.getElementById('payment-method-section');
+    const paymentSelect = document.getElementById('payment_method');
+    const createOrderBtn = document.getElementById('create-order-btn');
+
+    createOrderBtn.disabled = true;
 
     if (orderType.value === 'dine_in') {
         tableSection.style.display = 'block';
         tableSelect.required = true;
-    } else {
+        paymentSection.style.display = 'none';
+        paymentSelect.required = false;
+    } else if (orderType.value === 'takeaway') {
         tableSection.style.display = 'none';
         tableSelect.required = false;
+        tableSelect.value = '';
+        paymentSection.style.display = 'block';
+        paymentSelect.required = true;
+    } else if (orderType.value === 'delivery') {
+        tableSection.style.display = 'none';
+        tableSelect.required = false;
+        tableSelect.value = '';
+        paymentSection.style.display = 'block';
+        paymentSelect.required = true;
     }
 });
 
@@ -208,6 +236,7 @@ function updateCart() {
     const discountEl = document.getElementById('discount-amount');
     const form = document.getElementById('pos-form');
     const discountInput = form.querySelector('input[name="discount"]');
+    const createOrderBtn = document.getElementById('create-order-btn');
 
     if (cart.length === 0) {
         container.innerHTML = `
@@ -221,8 +250,11 @@ function updateCart() {
         totalEl.textContent = '₹0.00';
         subtotalEl.textContent = '₹0.00';
         discountEl.textContent = '-₹0.00';
+        createOrderBtn.disabled = true;
         return;
     }
+
+    createOrderBtn.disabled = false;
 
     let html = '';
     let subtotal = 0;

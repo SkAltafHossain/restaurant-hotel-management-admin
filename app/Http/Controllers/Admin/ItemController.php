@@ -9,6 +9,13 @@ use App\Models\Item;
 
 class ItemController extends Controller
 {
+    public function apiIndex()
+    {
+        $items = Item::where('is_available', true)->where('type', 'food')->get(['id', 'name', 'price']);
+
+        return response()->json($items);
+    }
+
     public function index()
     {
         $items = Item::with('category')->orderBy('name')->paginate(20);

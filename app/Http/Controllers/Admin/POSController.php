@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\OrderPlaced;
 use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Models\Order;
@@ -32,6 +33,10 @@ class POSController extends Controller
             'payment_method' => 'nullable|required_if:order_type,takeaway,delivery|in:cod,online,cash,upi,card',
         ]);
 
+        if ($request->order_type === 'takeaway' && $request->payment_method === 'cod') {
+            return back()->withErrors(['payment_method' => 'Cash on delivery is not available for takeaway orders. Please use online payment.'])->withInput();
+        }
+
         $totalAmount = 0;
         $orderItems = [];
 
@@ -54,12 +59,10 @@ class POSController extends Controller
         $paymentStatus = 'unpaid';
         $orderStatus = 'pending';
 
-        if ($request->order_type === 'takeaway') {
+        if ($request->order_type === 'takeaway' && $request->payment_method === 'online') {
             $paymentStatus = 'paid';
-            $orderStatus = 'completed';
         } elseif ($request->order_type === 'delivery' && $request->payment_method === 'online') {
             $paymentStatus = 'paid';
-            $orderStatus = 'completed';
         }
 
         $order = Order::create([
@@ -92,6 +95,8 @@ class POSController extends Controller
                 'status' => 'completed',
             ]);
         }
+
+        OrderPlaced::dispatch($order);
 
         return redirect()->route('admin.pos.index')->with('success', 'Order created successfully.');
     }

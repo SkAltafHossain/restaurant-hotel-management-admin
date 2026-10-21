@@ -152,9 +152,9 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                    <select name="payment_method" required
+                    <select name="payment_method" id="paymentMethodSelect" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition shadow-sm">
-                        <option value="cod">💵 Cash on Delivery</option>
+                        <option value="cod" id="cod-option">💵 Cash on Delivery</option>
                         <option value="online">📱 Online Payment</option>
                     </select>
                 </div>
@@ -246,7 +246,23 @@
         document.getElementById('paymentOrderId').value = id;
         document.getElementById('paymentAmount').textContent = '₹' + amount.toFixed(2);
         const modalTitle = document.querySelector('#paymentModal h2');
-        modalTitle.textContent = orderType === 'delivery' ? 'Collect Cash on Delivery' : 'Process Payment';
+        const codOption = document.getElementById('cod-option');
+        const paymentMethodSelect = document.getElementById('paymentMethodSelect');
+
+        if (orderType === 'takeaway') {
+            modalTitle.textContent = 'Process Payment';
+            codOption.style.display = 'none';
+            if (paymentMethodSelect.value === 'cod') {
+                paymentMethodSelect.value = 'online';
+            }
+        } else if (orderType === 'delivery') {
+            modalTitle.textContent = 'Collect Cash on Delivery';
+            codOption.style.display = 'block';
+        } else {
+            modalTitle.textContent = 'Process Payment';
+            codOption.style.display = 'block';
+        }
+
         openModal('paymentModal');
     }
 

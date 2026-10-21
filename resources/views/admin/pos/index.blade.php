@@ -121,7 +121,7 @@
                     <div class="mb-4" id="payment-method-section" style="display: none;">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method *</label>
                         <select name="payment_method" id="payment_method" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition shadow-sm">
-                            <option value="cod">💵 Cash on Delivery</option>
+                            <option value="cod" id="cod-option">💵 Cash on Delivery</option>
                             <option value="online">📱 Online Payment</option>
                         </select>
                     </div>
@@ -161,6 +161,7 @@ document.getElementById('order_type').addEventListener('change', function() {
     const tableSelect = tableSection.querySelector('select');
     const paymentSection = document.getElementById('payment-method-section');
     const paymentSelect = document.getElementById('payment_method');
+    const codOption = document.getElementById('cod-option');
 
     if (this.value === 'dine_in') {
         tableSection.style.display = 'block';
@@ -173,12 +174,17 @@ document.getElementById('order_type').addEventListener('change', function() {
         tableSelect.value = '';
         paymentSection.style.display = 'block';
         paymentSelect.required = true;
+        codOption.style.display = 'none';
+        if (paymentSelect.value === 'cod') {
+            paymentSelect.value = 'online';
+        }
     } else if (this.value === 'delivery') {
         tableSection.style.display = 'none';
         tableSelect.required = false;
         tableSelect.value = '';
         paymentSection.style.display = 'block';
         paymentSelect.required = true;
+        codOption.style.display = 'block';
     }
 });
 
@@ -189,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tableSelect = tableSection.querySelector('select');
     const paymentSection = document.getElementById('payment-method-section');
     const paymentSelect = document.getElementById('payment_method');
+    const codOption = document.getElementById('cod-option');
     const createOrderBtn = document.getElementById('create-order-btn');
 
     createOrderBtn.disabled = true;
@@ -204,12 +211,17 @@ document.addEventListener('DOMContentLoaded', function() {
         tableSelect.value = '';
         paymentSection.style.display = 'block';
         paymentSelect.required = true;
+        codOption.style.display = 'none';
+        if (paymentSelect.value === 'cod') {
+            paymentSelect.value = 'online';
+        }
     } else if (orderType.value === 'delivery') {
         tableSection.style.display = 'none';
         tableSelect.required = false;
         tableSelect.value = '';
         paymentSection.style.display = 'block';
         paymentSelect.required = true;
+        codOption.style.display = 'block';
     }
 });
 

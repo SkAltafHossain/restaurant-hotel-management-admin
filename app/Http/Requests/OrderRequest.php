@@ -30,7 +30,7 @@ class OrderRequest extends FormRequest
             'discount' => 'required|numeric|min:0',
             'final_amount' => 'required|numeric|min:0',
             'payment_status' => 'required|in:paid,unpaid',
-            'order_status' => 'required|in:pending,preparing,completed,cancelled',
+            'order_status' => 'required|in:pending,preparing,prepared,ready_to_serve,serving,out_for_delivery,ready_for_pickup,completed,cancelled',
         ];
     }
 }

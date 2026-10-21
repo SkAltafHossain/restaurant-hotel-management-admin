@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
-    protected $fillable = ['user_id', 'order_type', 'table_id', 'total_amount', 'discount', 'final_amount', 'payment_status', 'order_status'];
+    protected $fillable = ['user_id', 'order_type', 'table_id', 'total_amount', 'discount', 'final_amount', 'payment_status', 'order_status', 'assigned_to'];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
@@ -35,5 +35,10 @@ class Order extends Model
     public function transaction(): HasOne
     {
         return $this->hasOne(Transaction::class);
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 }

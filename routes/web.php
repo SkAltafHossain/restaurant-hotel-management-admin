@@ -17,7 +17,10 @@ use App\Http\Controllers\Admin\SalaryController;
 use App\Http\Controllers\Admin\TableBookingController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WaiterController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,6 +49,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('orders', OrderController::class)->middleware('can:manage orders');
     Route::post('/orders/payment', [OrderController::class, 'payment'])->name('orders.payment')->middleware('can:manage orders');
     Route::post('/orders/add-item', [OrderController::class, 'addItem'])->name('orders.add-item')->middleware('can:manage orders');
+    Route::post('/orders/{order}/start-preparing', [OrderController::class, 'startPreparing'])->name('orders.start-preparing')->middleware('can:manage orders');
+    Route::post('/orders/{order}/mark-ready', [OrderController::class, 'markReady'])->name('orders.mark-ready')->middleware('can:manage orders');
+    Route::post('/orders/{order}/mark-out-for-delivery', [OrderController::class, 'markOutForDelivery'])->name('orders.mark-out-for-delivery')->middleware('can:manage orders');
+    Route::post('/orders/{order}/mark-completed', [OrderController::class, 'markCompleted'])->name('orders.mark-completed')->middleware('can:manage orders');
+    Route::post('/orders/{order}/assign', [OrderController::class, 'assignOrder'])->name('orders.assign')->middleware('can:manage orders');
     Route::resource('tables', TableController::class)->middleware('can:manage categories');
     Route::resource('table-bookings', TableBookingController::class)->middleware('can:manage table bookings');
     Route::resource('room-bookings', RoomBookingController::class)->middleware('can:manage room bookings');
@@ -63,6 +71,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/daily', [ReportController::class, 'dailyReport'])->name('daily');
         Route::get('/daily/export', [ReportController::class, 'exportDailyReport'])->name('daily.export');
         Route::get('/monthly', [ReportController::class, 'monthlyReport'])->name('monthly');
+    });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::middleware('kitchen.staff')->prefix('kitchen')->name('kitchen.')->group(function () {
+        Route::get('/', [KitchenController::class, 'index'])->name('index');
+        Route::post('/orders/{order}/start-preparing', [KitchenController::class, 'startPreparing'])->name('start-preparing');
+        Route::post('/orders/{order}/mark-ready', [KitchenController::class, 'markReady'])->name('mark-ready');
+    });
+
+    Route::middleware('waiter')->prefix('waiter')->name('waiter.')->group(function () {
+        Route::get('/', [WaiterController::class, 'index'])->name('index');
+        Route::post('/orders/{order}/mark-served', [WaiterController::class, 'markServed'])->name('mark-served');
+        Route::get('/table/{table}/orders', [WaiterController::class, 'getTableOrders'])->name('table.orders');
+    });
+
+    Route::middleware('delivery.boy')->prefix('delivery')->name('delivery.')->group(function () {
+        Route::get('/', [DeliveryController::class, 'index'])->name('index');
+        Route::post('/orders/{order}/assign', [DeliveryController::class, 'assignOrder'])->name('assign');
+        Route::post('/orders/{order}/mark-out-for-delivery', [DeliveryController::class, 'markOutForDelivery'])->name('mark-out-for-delivery');
+        Route::post('/orders/{order}/mark-delivered', [DeliveryController::class, 'markDelivered'])->name('mark-delivered');
     });
 });
 

@@ -15,6 +15,16 @@ class IsKitchenStaff
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (! auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $allowedRoles = ['admin', 'kitchen_chef'];
+
+        if (! auth()->user()->hasAnyRole($allowedRoles)) {
+            abort(403, 'Unauthorized action. You must be kitchen staff to access this page.');
+        }
+
         return $next($request);
     }
 }

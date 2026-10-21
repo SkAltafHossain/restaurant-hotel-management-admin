@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\OrderPlaced;
+use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
 use App\Models\Item;
@@ -26,7 +28,9 @@ class OrderController extends Controller
 
     public function store(OrderRequest $request)
     {
-        Order::create($request->validated());
+        $order = Order::create($request->validated());
+
+        OrderPlaced::dispatch($order);
 
         return redirect()->route('admin.orders.index')->with('success', 'Order created successfully.');
     }
@@ -45,7 +49,12 @@ class OrderController extends Controller
 
     public function update(Request $request, Order $order)
     {
-        $order->update($request->only(['order_status', 'payment_status']));
+        $previousStatus = $order->order_status;
+        $order->update($request->only(['order_status', 'payment_status', 'assigned_to']));
+
+        if ($order->order_status !== $previousStatus) {
+            OrderStatusUpdated::dispatch($order, $previousStatus);
+        }
 
         return redirect()->route('admin.orders.index')->with('success', 'Order updated successfully.');
     }
@@ -58,9 +67,15 @@ class OrderController extends Controller
         ]);
 
         $order = Order::find($request->order_id);
+
+        if ($order->order_type === 'takeaway' && $request->payment_method === 'cod') {
+            return back()->withErrors(['payment_method' => 'Cash on delivery is not available for takeaway orders. Please use online payment.'])->withInput();
+        }
+
+        // Only update payment status, not order status
+        // Kitchen staff should still process the order even after payment
         $order->update([
             'payment_status' => 'paid',
-            'order_status' => 'completed',
         ]);
 
         Transaction::create([
@@ -115,5 +130,58 @@ class OrderController extends Controller
         $order->delete();
 
         return redirect()->route('admin.orders.index')->with('success', 'Order deleted successfully.');
+    }
+
+    public function startPreparing(Order $order)
+    {
+        $previousStatus = $order->order_status;
+        $order->update(['order_status' => 'preparing']);
+
+        OrderStatusUpdated::dispatch($order, $previousStatus);
+
+        return back()->with('success', 'Order marked as preparing.');
+    }
+
+    public function markReady(Order $order)
+    {
+        $previousStatus = $order->order_status;
+        $newStatus = $order->order_type === 'dine_in' ? 'ready_to_serve' : 'ready_for_pickup';
+
+        $order->update(['order_status' => $newStatus]);
+
+        OrderStatusUpdated::dispatch($order, $previousStatus);
+
+        return back()->with('success', 'Order marked as ready.');
+    }
+
+    public function markOutForDelivery(Order $order)
+    {
+        $previousStatus = $order->order_status;
+        $order->update(['order_status' => 'out_for_delivery']);
+
+        OrderStatusUpdated::dispatch($order, $previousStatus);
+
+        return back()->with('success', 'Order marked as out for delivery.');
+    }
+
+    public function markCompleted(Order $order)
+    {
+        $previousStatus = $order->order_status;
+        $order->update(['order_status' => 'completed']);
+
+        OrderStatusUpdated::dispatch($order, $previousStatus);
+
+        return back()->with('success', 'Order marked as completed.');
+    }
+
+    public function assignOrder(Request $request, Order $order)
+    {
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        $order->update(['assigned_to' => $request->assigned_to]);
+
+        return back()->with('success', 'Order assigned successfully.');
     }
 }

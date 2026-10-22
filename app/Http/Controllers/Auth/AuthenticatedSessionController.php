@@ -28,6 +28,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = auth()->user();
+
+        if ($user->hasRole('kitchen_chef')) {
+            return redirect()->intended(route('kitchen.index', absolute: false));
+        }
+
+        if ($user->hasRole('waiter')) {
+            return redirect()->intended(route('waiter.index', absolute: false));
+        }
+
+        if ($user->hasRole('delivery_boy')) {
+            return redirect()->intended(route('delivery.index', absolute: false));
+        }
+
         return redirect()->intended(route('admin.dashboard', absolute: false));
     }
 

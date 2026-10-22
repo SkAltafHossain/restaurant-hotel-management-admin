@@ -25,14 +25,14 @@
                         @foreach($order->orderItems as $item)
                             <div class="flex items-center justify-between text-sm">
                                 <span class="text-gray-700">{{ $item->quantity }}x {{ $item->item->name }}</span>
-                                <span class="text-gray-500">${{ number_format($item->total_price, 2) }}</span>
+                                <span class="text-gray-500">₹{{ number_format($item->total_price, 2) }}</span>
                             </div>
                         @endforeach
                     </div>
                     <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                         <div class="text-sm">
                             <span class="text-gray-500">Total:</span>
-                            <span class="font-bold text-green-600">${{ number_format($order->final_amount, 2) }}</span>
+                            <span class="font-bold text-green-600">₹{{ number_format($order->final_amount, 2) }}</span>
                         </div>
                         <form action="{{ route('waiter.mark-served', $order) }}" method="POST">
                             @csrf
@@ -128,13 +128,13 @@
                                 ${order.order_items.map(item => `
                                     <div class="flex justify-between">
                                         <span>${item.quantity}x ${item.item.name}</span>
-                                        <span class="text-gray-500">$${parseFloat(item.total_price).toFixed(2)}</span>
+                                        <span class="text-gray-500">₹${parseFloat(item.total_price).toFixed(2)}</span>
                                     </div>
                                 `).join('')}
                             </div>
                             <div class="mt-2 pt-2 border-t border-gray-200 text-sm">
                                 <span class="text-gray-500">Total:</span>
-                                <span class="font-bold text-green-600">$${parseFloat(order.final_amount).toFixed(2)}</span>
+                                <span class="font-bold text-green-600">₹${parseFloat(order.final_amount).toFixed(2)}</span>
                             </div>
                         </div>
                     `;
@@ -178,32 +178,6 @@
         });
     });
 </script>
-<style>
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 50;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-    .modal.show {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .modal-content {
-        background-color: white;
-        border-radius: 1rem;
-        max-width: 500px;
-        width: 90%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    }
-</style>
 <script>
     // Sound notification using Web Audio API
     function playNotificationSound() {
